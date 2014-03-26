@@ -1,6 +1,6 @@
 {
 	"name": "filedump",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Store files",
 	"licenses": [{
 		"type": "Public Domain",

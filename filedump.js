@@ -125,7 +125,7 @@ module.exports = function(pth, len) {
 			
 			callback(null, filename);
 			
-		}
+		});
 		
 	};
 	
