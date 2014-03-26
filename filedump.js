@@ -70,6 +70,7 @@ module.exports = function(pth, len) {
 		
 	}
 	
+	/* create directories recursively */
 	t.mkdir = function(dir, callback) {
 		if (typeof callback !== "function") var callback = function(){};
 		var _dir = path.resolve(dir);
@@ -90,7 +91,7 @@ module.exports = function(pth, len) {
 		});
 	};
 	
-	
+	/* generate a random filename */
 	t.filename = function(ext) {
 		var f = [];
 		crypto.randomBytes(t.len).toString('hex').split('').forEach(function(c,i){
@@ -105,7 +106,29 @@ module.exports = function(pth, len) {
 		return f;
 	}
 	
-	t.init = /* read options */
+	/* just create a filename */
+	t.prepare = function(ext, callback){
+		
+		if (typeof ext === "function") {
+			var callback = ext;
+			var ext = null;
+		}
+		
+		/* replace leading dot in extension */
+		if (typeof ext === "string") ext = ext.replace(/^\./,'');
+		
+		var filename = t.filename(ext);
+				
+		t.mkdir(path.resolve(t.path, path.dirname(filename)), function(err){
+			
+			if (err) return callback(err);
+			
+			callback(null, filename);
+			
+		}
+		
+	};
+	
 	t.path = path.resolve(pth);
 	t.len = (typeof len !== "number" || len < 8) ? 8 : len;
 	

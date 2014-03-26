@@ -42,7 +42,16 @@ filedump.save(ts, "txt", function(err, filename){
 
 ### filedump.save(data, [ext], callback)
 
+Save data and call back with filename
+
 * `data` can be a file path, buffer or readble stream
+* `ext` is the file extention for the generated file. this is automatically determined when the first argument is a file path
+* `callback` has `err` and `filename` as arguments
+
+### filedump.prepare([ext], callback)
+
+Generate random file name, create directories and call back with file name
+
 * `ext` is the file extention for the generated file. this is automatically determined when the first argument is a file path
 * `callback` has `err` and `filename` as arguments
 
