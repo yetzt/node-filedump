@@ -9,12 +9,22 @@ module.exports = function(pth, len) {
 	
 	var t = this;	
 		
-	t.save = function(data, ext, callback) {
+	var _write = function(data, ext, callback_sync, callback_async) {
 		
+		/* shift if ext is function */
 		if (typeof ext === "function") {
-			var callback = ext;
+			var callback_async = callback_sync;
+			var callback_sync = ext;
 			var ext = null;
 		}
+
+		if (typeof callback_sync !== "function") callback_sync = function(){};
+		if (typeof callback_async !== "function") callback_async = function(){};
+
+		var callback_err = function(err) {
+			callback_sync(err);
+			callback_async(err);
+		};
 
 		/* try to determine file extension by file name */
 		if (typeof data === "string" && typeof ext !== "string" && ext !== false) {
@@ -29,18 +39,23 @@ module.exports = function(pth, len) {
 				
 		t.mkdir(path.resolve(t.path, path.dirname(filename)), function(err){
 			
-			if (err) return callback(err);
+			if (err) return callback_err(err);
 			
 			if (typeof data === "string") {
 
 				fs.exists(path.resolve(data), function(ex){
 					
-					if (!ex) return callback(new Error("`data` strings must be an existing file path"));
+					if (!ex) return callback_err(new Error("`data` strings must be an existing file path"));
 					
-					fs.createReadStream(path.resolve(data)).pipe(fs.createWriteStream(path.resolve(t.path, filename)));
+					fs.createReadStream(path.resolve(data)).pipe(fs.createWriteStream(path.resolve(t.path, filename)).on("finish", function(){
+						callback_sync(null, filename);
+					}).on("error", function(err){
+						callback_sync(err);
+					}));
 					
-					callback(null, filename);
-					
+					/* no error reporting for async */
+					callback_async(null, filename);
+
 				});
 				
 				
@@ -48,21 +63,27 @@ module.exports = function(pth, len) {
 				
 				fs.writeFile(path.resolve(t.path, filename), data, function(err){
 					
-					if (!err) return callback(err);
+					if (err) return callback_err(err);
 					
-					callback(null, filename);
+					callback_async(null, filename);
+					callback_sync(null, filename);
 					
 				});
 				
 			} else if (data instanceof stream.Readable) {
 				
-				data.pipe(fs.createWriteStream(path.resolve(t.path, filename)));
-				
-				callback(null, filename);
+				data.pipe(fs.createWriteStream(path.resolve(t.path, filename)).on("finish", function(){
+					callback_sync(null, filename);
+				}).on("error", function(err){
+					callback_sync(err);
+				}));
+
+				/* no error reporting for async */
+				callback_async(null, filename);
 				
 			} else {
 				
-				callback(new Error("`data` must be a filename, Buffer or readable stream"));
+				callback_err(new Error("`data` must be a filename, Buffer or readable stream"));
 
 			}
 			
@@ -127,6 +148,14 @@ module.exports = function(pth, len) {
 			
 		});
 		
+	};
+	
+	t.save = function(data, ext, callback) {
+		_write(data, ext, callback, null);
+	};
+	
+	t.dump = function(data, ext, callback) {
+		_write(data, ext, null, callback);
 	};
 	
 	t.path = path.resolve(pth);
