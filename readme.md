@@ -63,6 +63,13 @@ Generate random file name, create directories and call back with file name
 * `ext` is the file extention for the generated file. this is automatically determined when the first argument is a file path
 * `callback` has `err` and `filename` as arguments
 
+### filedump.delete(file, callback)
+
+Delete a file and clear its parent directories.
+
+* `file` is the file name relative to the storage folder
+* `callback` has `err` as an argument
+
 ## License
 
 [Public Domain](http://unlicense.org/UNLICENSE)

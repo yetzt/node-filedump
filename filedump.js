@@ -7,7 +7,26 @@ var stream = require("stream");
 
 module.exports = function(pth, len) {
 	
-	var t = this;	
+	var t = this;
+	
+	var _delete = function(file, callback) {
+		if (file === t.path) return callback(null);
+		fs.stat(file, function(err, stats){
+			if (err) callback(err);
+			if (stats.isFile()) {
+				fs.unlink(file, function(err){
+					if (err) return callback(null);
+					_delete(path.dirname(file), callback);
+				});
+			} else if (stats.isDirectory()) {
+				fs.rmdir(file, function(err){
+					if (err) return callback(null);
+					_delete(path.dirname(file), callback);
+				});
+			}
+		});
+		
+	};
 		
 	var _write = function(data, ext, callback_sync, callback_async) {
 		
@@ -156,6 +175,10 @@ module.exports = function(pth, len) {
 	
 	t.dump = function(data, ext, callback) {
 		_write(data, ext, null, callback);
+	};
+	
+	t.delete = function(file, callback) {
+		_delete(path.resolve(t.path, file), callback);
 	};
 	
 	t.path = path.resolve(pth);
